@@ -3,15 +3,17 @@ const hikeApp = {};
 const routeKey = `Aia7N7IYQAD2wuOi_t3bwY9x9AqsymMip5UUZSY_OhyJF9uYSkjb3UkwFhIVP7nJ`
 const geoKey = `51b65eec5dc1479abcc1262f017405a2`
 
-const postalCode = $("input").val();
+let postalCode = " "
 
 const totalTime = function (seconds){
     const hours = Math.floor(seconds/3600);
     const minutes = Math.round((seconds %= 3600)/60);
-    console.log(`${hours} h ${minutes} min`)
+    return `${hours} h ${minutes} min`
 };
 
 const getCoordinates = function(postalCode) {
+
+     postalCode = $("input").val();
 
     $.ajax({
         url:`http://dev.virtualearth.net/REST/v1/Locations/CA/-/${postalCode}/-/-`,
@@ -24,13 +26,15 @@ const getCoordinates = function(postalCode) {
         const dLat = data.resourceSets[0].resources[0].point.coordinates[0];
         const dLong = data.resourceSets[0].resources[0].point.coordinates[1];
         console.log(dLat, dLong);
-        getHikes (dLat, dLong);
 
+        $.when(getCoordinates)
+        .then(function(){
+            getHikes (dLat, dLong);
+        })
     }).fail(function(error){
         console.log(error);
     });
 };
-
 
 hikeApp.baseUrl = 'https://www.hikingproject.com/data/get-trails';
 hikeApp.key = '200640927-0078512b6eac032c4ea121fea696b36f';
@@ -46,9 +50,10 @@ const getHikes = function(dLat, dLong) {
             lon: dLong
         }
     }).then( function(hikeData){
-
-
+        
+        console.log(hikeData)
         for(i=0;i<hikeData.trails[i].length;i++){
+ 
             const hikeName = (hikeData.trails[i].name);
             const hikeSummary = (hikeData.trails[i].summary);
             const hikeLocation = (hikeData.trails[i].location);
@@ -58,18 +63,21 @@ const getHikes = function(dLat, dLong) {
             const aLat = hikeData.trails[i].latitude;
             const aLong = hikeData.trails[i].longitude;
             getRoute(dLat,dLong,aLat,aLong);
-
-            const hikeInfo = `
-            <a href=${hikeWebsite}>
-                <img src="${hikeImage}" alt="${hikeName}">
-            </a>
-            <h2>${hikeName}</h2>
-            <p>${hikeLocation}</p>
-            <p>${hikeStars}</p>
-            <p>${hikeSummary}</p>`
-            $(".results").append(hikeInfo)
+    
+            $.when(getRoute)
+            .then(function(){
+                const hikeInfo = `
+                <a href=${hikeWebsite}>
+                    <img src="${hikeImage}" alt="${hikeName}">
+                    <h2>${hikeName}</h2>
+                </a>
+                <p>${hikeStars} Stars ${hikeLocation}</p>
+                <p>Ascent: ${hikeData.trails[i].ascent}, Descent: ${hikeData.trails[i].descent}</p>
+                <p>${hikeSummary}</p>
+                <div class ="travel-info"></div>`
+                $(".results").append(hikeInfo)
+            })
         }
-        console.log(hikeData)	
     })
 }	
 
@@ -78,7 +86,6 @@ const getRoute = function(dLat, dLong, aLat, aLong) {
 const depart = dLat + ",%20" + dLong
 const arrive = aLat + ",%20" + aLong
 
-console.log("we are calling api");
 $.ajax({
     url:`http://dev.virtualearth.net/REST/V1/Routes/Driving?wp.0=${depart}&wp.1=${arrive}`,
     method: "GET",
@@ -92,9 +99,13 @@ $.ajax({
         const driveTimeSeconds = result.resourceSets[0].resources[0].travelDuration;
         const driveTrafficSeconds = result.resourceSets[0].resources[0].travelDurationTraffic;
 
-        console.log("distance", driveDistance + " km");
-        console.log(totalTime(driveTimeSeconds));
-        console.log(totalTime(driveTrafficSeconds));
+        const travelInfo = `
+        <p>Distance: ${driveDistance} km</p>
+        <p>Estimated Drive Time: ${totalTime(driveTimeSeconds)}</p>
+        <p>With Traffic: ${totalTime(driveTrafficSeconds)}</p>
+        `
+
+        $(".travel-info").append(travelInfo);
     }).fail(function(error){
         console.log(error);
     });
@@ -102,25 +113,37 @@ $.ajax({
 
 // hikeApp.displayHike = function (data) {
 
+//     for(i=0;i<hikeData.trails[i].length;i++){
+ 
+//         const hikeName = (hikeData.trails[i].name);
+//         const hikeSummary = (hikeData.trails[i].summary);
+//         const hikeLocation = (hikeData.trails[i].location);
+//         const hikeImage = (hikeData.trails[i].imgSmallMed)
+//         const hikeWebsite = (hikeData.trails[i].url)
+//         const hikeStars = (hikeData.trails[i].starVotes)/10
+//         const aLat = hikeData.trails[i].latitude;
+//         const aLong = hikeData.trails[i].longitude;
+//         getRoute(dLat,dLong,aLat,aLong);
 
-
-//     .forEach(function(articles){
-//         const newsHTML = `
-//         <div class="results-container">
-//             <a href="${articles.url}">
-//                 <img src='${articles.urlToImage}'/>
-//                 <h2 class="article-title">${articles.title}</h2>
+//         $.when(getRoute)
+//         .then(function(){
+//             const hikeInfo = `
+//             <a href=${hikeWebsite}>
+//                 <img src="${hikeImage}" alt="${hikeName}">
 //             </a>
-//             <p class="description">${articles.description}</p>
-//         </div>
-//         `
-//         $('.results').append(newsHTML);
-//     });
+//             <h2>${hikeName}</h2>
+//             <p>${hikeLocation}</p>
+//             <p>${hikeStars} Stars</p>
+//             <p>${hikeSummary}</p>
+//             <div class ="travel-info"></div>`
+//             $(".results").append(hikeInfo)
+//         })
+//     }
 // };
 
 $(function(){
     $("input[type='submit']").on("click", function(){
-        console.log(postalCode);
+        $(".results").html(" ")
         getCoordinates(postalCode);
     })
 });
