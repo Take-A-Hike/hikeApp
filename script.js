@@ -95,6 +95,16 @@ $.ajax({
         key: routeKey
         }
     }).then(function(result){
+
+        hikeApp.displayRoute(result);
+
+    }).fail(function(error){
+        console.log(error);
+    });
+};
+
+hikeApp.displayRoute = function (result){
+
         const driveDistance = result.resourceSets[0].resources[0].travelDistance;
         const driveTimeSeconds = result.resourceSets[0].resources[0].travelDuration;
         const driveTrafficSeconds = result.resourceSets[0].resources[0].travelDurationTraffic;
@@ -106,40 +116,7 @@ $.ajax({
         `
 
         $(".travel-info").append(travelInfo);
-    }).fail(function(error){
-        console.log(error);
-    });
-};
-
-// hikeApp.displayHike = function (data) {
-
-//     for(i=0;i<hikeData.trails[i].length;i++){
- 
-//         const hikeName = (hikeData.trails[i].name);
-//         const hikeSummary = (hikeData.trails[i].summary);
-//         const hikeLocation = (hikeData.trails[i].location);
-//         const hikeImage = (hikeData.trails[i].imgSmallMed)
-//         const hikeWebsite = (hikeData.trails[i].url)
-//         const hikeStars = (hikeData.trails[i].starVotes)/10
-//         const aLat = hikeData.trails[i].latitude;
-//         const aLong = hikeData.trails[i].longitude;
-//         getRoute(dLat,dLong,aLat,aLong);
-
-//         $.when(getRoute)
-//         .then(function(){
-//             const hikeInfo = `
-//             <a href=${hikeWebsite}>
-//                 <img src="${hikeImage}" alt="${hikeName}">
-//             </a>
-//             <h2>${hikeName}</h2>
-//             <p>${hikeLocation}</p>
-//             <p>${hikeStars} Stars</p>
-//             <p>${hikeSummary}</p>
-//             <div class ="travel-info"></div>`
-//             $(".results").append(hikeInfo)
-//         })
-//     }
-// };
+}
 
 $(function(){
     $("input[type='submit']").on("click", function(){
