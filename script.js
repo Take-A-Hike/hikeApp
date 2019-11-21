@@ -52,7 +52,7 @@ const getHikes = function(dLat, dLong) {
     }).then( function(hikeData){
         
         console.log(hikeData)
-        for(i=0;i<hikeData.trails[i].length;i++){
+        for(i=0;i<hikeData.trails.length;i++){
  
             const hikeName = (hikeData.trails[i].name);
             const hikeSummary = (hikeData.trails[i].summary);
@@ -62,26 +62,24 @@ const getHikes = function(dLat, dLong) {
             const hikeStars = (hikeData.trails[i].starVotes)/10
             const aLat = hikeData.trails[i].latitude;
             const aLong = hikeData.trails[i].longitude;
-            getRoute(dLat,dLong,aLat,aLong);
     
-            $.when(getRoute)
-            .then(function(){
                 const hikeInfo = `
-                <a href=${hikeWebsite}>
-                    <img src="${hikeImage}" alt="${hikeName}">
-                    <h2>${hikeName}</h2>
-                </a>
-                <p>${hikeStars} Stars ${hikeLocation}</p>
-                <p>Ascent: ${hikeData.trails[i].ascent}, Descent: ${hikeData.trails[i].descent}</p>
-                <p>${hikeSummary}</p>
-                <div class ="travel-info"></div>`
-                $(".results").append(hikeInfo)
-            })
+                <div id="hike-info-${[i]}">
+                    <a href=${hikeWebsite}>
+                        <img src="${hikeImage}" alt="${hikeName}">
+                        <h2>${hikeName}</h2>
+                    </a>
+                    <p>${hikeStars} Stars ${hikeLocation}</p>
+                    <p>Ascent: ${hikeData.trails[i].ascent}, Descent: ${hikeData.trails[i].descent}</p>
+                    <p>${hikeSummary}</p>
+                </div>`
+                $(".results").append(hikeInfo);
+                getRoute(dLat,dLong,aLat,aLong, i);
         }
     })
 }	
 
-const getRoute = function(dLat, dLong, aLat, aLong) {
+const getRoute = function(dLat, dLong, aLat, aLong, resultIndex) {
 
 const depart = dLat + ",%20" + dLong
 const arrive = aLat + ",%20" + aLong
@@ -96,26 +94,26 @@ $.ajax({
         }
     }).then(function(result){
 
-        hikeApp.displayRoute(result);
+        hikeApp.displayRoute(result, resultIndex);
 
     }).fail(function(error){
         console.log(error);
     });
 };
 
-hikeApp.displayRoute = function (result){
+hikeApp.displayRoute = function (result, resultIndex){
 
         const driveDistance = result.resourceSets[0].resources[0].travelDistance;
         const driveTimeSeconds = result.resourceSets[0].resources[0].travelDuration;
         const driveTrafficSeconds = result.resourceSets[0].resources[0].travelDurationTraffic;
 
         const travelInfo = `
-        <p>Distance: ${driveDistance} km</p>
-        <p>Estimated Drive Time: ${totalTime(driveTimeSeconds)}</p>
-        <p>With Traffic: ${totalTime(driveTrafficSeconds)}</p>
+            <p>Distance: ${driveDistance} km</p>
+            <p>Estimated Drive Time: ${totalTime(driveTimeSeconds)}</p>
+            <p>With Traffic: ${totalTime(driveTrafficSeconds)}</p>
         `
 
-        $(".travel-info").append(travelInfo);
+        $("#hike-info-"+resultIndex).append(travelInfo);
 }
 
 $(function(){
