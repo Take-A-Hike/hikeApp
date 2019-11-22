@@ -59,7 +59,7 @@ const getHikes = function(dLat, dLong) {
             const hikeLocation = (hikeData.trails[i].location);
             const hikeImage = (hikeData.trails[i].imgSmallMed)
             const hikeWebsite = (hikeData.trails[i].url)
-            const hikeStars = (hikeData.trails[i].starVotes)/10
+            const hikeStars = (hikeData.trails[i].stars)
             const aLat = hikeData.trails[i].latitude;
             const aLong = hikeData.trails[i].longitude;
     
@@ -120,6 +120,11 @@ $(function(){
     $("input[type='submit']").on("click", function(){
         $(".results").html(" ")
         getCoordinates(postalCode);
+
+		$('.rightMountain').addClass('rightMountainHide');
+		$('.leftMountain').addClass('leftMountainHide');
+
+
     })
 });
 
